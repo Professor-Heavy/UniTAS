@@ -3,6 +3,8 @@ MOVIE_CONFIG = {
 }
 
 f = movie.frame_advance
+hold = key.hold
+rel = key.release
 
 -- MousePosLock
 mouse.move(155, 205)
@@ -12,27 +14,65 @@ f()
 mouse.move(550, 550)
 f()
 mouse.move(550, 550)
-f(3)
+f()
+f()
+f()
 mouse.move(75, 25)
 f()
 mouse.move(-550, -550)
 f()
 mouse.move(-550, -550)
-f(4)
+f()
+f()
+f()
+f()
 mouse.move(75, 75)
 f()
 mouse.move(100, 100)
-f(2)
+f()
+f()
 mouse.move(-100, -100)
-f(2)
+f()
+f()
 
 -- MouseAxis
 mouse.move(150, 142)
 f()
 mouse.move(50, 32)
-f(3)
+f()
+f()
+f()
 -- limit within resolution
 mouse.move(10000, 10000)
 f()
 mouse.move(-10000, -10000)
+f()
+
+-- KeyboardTwoKeys
+-- press A and B, but B is 1f delayed in action
+f()
+hold("A")
+f()
+hold("B")
+f()
+rel("A")
+f()
+rel("B")
+f()
+f()
+
+-- tap A and B twice, but B is delayed 1f in action
+hold("A")
+f()
+rel("A")
+hold("B")
+f()
+hold("A")
+rel("B")
+f()
+rel("A")
+hold("B")
+f()
+rel("B")
+f()
 f()
