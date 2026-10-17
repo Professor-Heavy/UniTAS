@@ -81,9 +81,7 @@ jobs:
 
           (
             while true; do
-              free -h
-        
-              df -h | grep -E "Filesystem|tmpfs"
+              echo "$(date): $(free -mh | grep Mem:)"
               sleep 1
             done
           ) &
