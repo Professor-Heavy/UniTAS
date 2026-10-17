@@ -61,16 +61,6 @@ jobs:
           restore-keys: |
             unity-game-library-${{ matrix.target.name }}-${{ matrix.target.targetPlatform }}-
 
-      - if: runner.os == 'Linux'
-        name: Diagnostic download with Nix curl outside FHS
-        continue-on-error: true
-        run: |
-          editor_version="$(cut -d ' ' -f 2 "TestGames/${{ matrix.target.name }}/ProjectSettings/ProjectVersion.txt")"
-          mkdir -p editor-nix-shell
-          echo "Downloading with the default Nix dev shell (not the unity-testing FHS shell)"
-          nix develop --command curl -fL --output "editor-nix-shell/${editor_version}.tar.gz" \
-            "https://download.leashed.dev/unity-editor/linux/${editor_version}.tar.gz"
-
       # - if: steps.unity-game-bin-cache.outputs.cache-hit != 'true'
       #   uses: game-ci/unity-builder@v5
       #   name: Build
