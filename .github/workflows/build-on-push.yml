@@ -32,7 +32,10 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
           # THANKS MICROSOFT, AMAZING WORK!!!! https://github.com/orgs/community/discussions/25678#discussioncomment-5242449
-          rm -rf /opt/hostedtoolcache
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/lib/jvm
+          docker system prune --all --force --volumes
 
       - name: Checkout
         uses: actions/checkout@v7
