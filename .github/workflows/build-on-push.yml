@@ -76,23 +76,66 @@ jobs:
       - name: Build
         shell: 'nix run ".#unity-testing" -- -e {0}'
         run: |
-          cat /sys/fs/cgroup/memory.events || true
-          cat /sys/fs/cgroup/memory.max || true
+          echo "Process cgroup:"
+          cat /proc/self/cgroup || true
+          echo "Cgroup mounts:"
+          grep -E ' - cgroup2? ' /proc/self/mountinfo || true
+          findmnt -t cgroup,cgroup2 || true
+          echo "Memory cgroup counters:"
+          for file in \
+            /sys/fs/cgroup/memory.current \
+            /sys/fs/cgroup/memory.max \
+            /sys/fs/cgroup/memory.events \
+            /sys/fs/cgroup/memory/memory.usage_in_bytes \
+            /sys/fs/cgroup/memory/memory.limit_in_bytes \
+            /sys/fs/cgroup/memory/memory.failcnt \
+            /sys/fs/cgroup/memory/memory.oom_control; do
+            if [ -r "$file" ]; then
+              echo "--- $file"
+              cat "$file"
+            fi
+          done
 
-          (
-            while true; do
-              echo "$(date): $(free -mh | grep Mem:)"
-              sleep 1
-            done
-          ) &
-          MONITOR_PID=$!
+          echo "Disk space before download:"
+          df -h . /tmp
+          echo "Disk inodes before download:"
+          df -i . /tmp
 
           mkdir -p editor
 
           editor_version=$(just detect-game-unity-version TestGames/${{ matrix.target.name }})
           pushd editor
           echo "Downloading from 'https://download.leashed.dev/unity-editor/linux/${editor_version}.tar.gz'"
-          curl -OfL "https://download.leashed.dev/unity-editor/linux/${editor_version}.tar.gz" || true
+          curl -OfL "https://download.leashed.dev/unity-editor/linux/${editor_version}.tar.gz" &
+          CURL_PID=$!
+          (
+            while ps -p "$CURL_PID" -o stat= | grep -q '^[^Z]'; do
+              echo "$(date): curl process:"
+              ps -p "$CURL_PID" -o pid,ppid,stat,rss,vsz,etime,cmd
+              echo "Memory:"
+              free -mh | grep Mem:
+              echo "Disk space:"
+              df -h . /tmp
+              echo "Disk inodes:"
+              df -i . /tmp
+              for file in \
+                /sys/fs/cgroup/memory.current \
+                /sys/fs/cgroup/memory.events \
+                /sys/fs/cgroup/memory/memory.usage_in_bytes \
+                /sys/fs/cgroup/memory/memory.failcnt \
+                /sys/fs/cgroup/memory/memory.oom_control; do
+                if [ -r "$file" ]; then
+                  echo "--- $file"
+                  cat "$file"
+                fi
+              done
+              sleep 5
+            done
+          ) &
+          MONITOR_PID=$!
+          wait "$CURL_PID" || true
+          kill "$MONITOR_PID" 2>/dev/null || true
+          wait "$MONITOR_PID" 2>/dev/null || true
           popd
 
           exit 1
